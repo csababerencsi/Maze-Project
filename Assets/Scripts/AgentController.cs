@@ -41,11 +41,8 @@ public class AgentController : Agent
         transform.Translate(_actionSpeed * Vector3.forward * _moveSpeed * Time.deltaTime);
         transform.Rotate(Vector3.up, _actionSteering * 180f * Time.deltaTime);
 
-        /*
         float distance_scaled = Vector3.Distance(_keyTarget.localPosition, transform.localPosition) / 30;
         AddReward(-distance_scaled / 10);
-        */
-        AddReward(0.01f);
     }
 
     public override void Heuristic(in ActionBuffers actionsOut)
