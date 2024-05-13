@@ -8,12 +8,30 @@ using UnityEngine;
 
 public class AgentController : Agent
 {
-    [SerializeField] Transform _keyTarget;
+    [SerializeField] Transform _keyTransform;
+    [SerializeField] Transform _doorTransform;
+    [SerializeField] Transform _agentTransform;
+
     [SerializeField] GameObject _keyObject;
-    [SerializeField] GameObject _agent;
     [SerializeField] float _moveSpeed = 10f;
     Vector3 _spawnPoint = new(-20f, 1f, 23f);
     [SerializeField] Animator anim;
+
+    float _maxKeyReward = 2f;
+    float _maxDoorReward = 4f;
+    float _minReward = -1f;
+    float totalReward;
+
+    private void FixedUpdate()
+    {
+        float _agentToKeyDistance = Vector3.Distance(_agentTransform.position, _keyTransform.position);
+        float _agentToDoorDistance = Vector3.Distance(_agentTransform.position, _doorTransform.position);
+
+        float keyReward = Mathf.Clamp(_maxKeyReward - _agentToKeyDistance, _minReward, _maxKeyReward);
+        float doorReward = Mathf.Clamp(_maxDoorReward - _agentToDoorDistance, _minReward, _maxDoorReward);
+
+        totalReward = keyReward + doorReward;
+    }
 
     public override void OnEpisodeBegin()
     {
@@ -25,10 +43,10 @@ public class AgentController : Agent
     {
         sensor.AddObservation(transform.localPosition.x);
         sensor.AddObservation(transform.localPosition.z);
-        if (_keyTarget != null)
+        if (_keyTransform != null)
         {
-            sensor.AddObservation(_keyTarget.localPosition.x);
-            sensor.AddObservation(_keyTarget.localPosition.z);
+            sensor.AddObservation(_keyTransform.localPosition.x);
+            sensor.AddObservation(_keyTransform.localPosition.z);
         }
     }
 
@@ -40,9 +58,7 @@ public class AgentController : Agent
         float _actionSteering = actionTaken[1];
         transform.Translate(_actionSpeed * Vector3.forward * _moveSpeed * Time.deltaTime);
         transform.Rotate(Vector3.up, _actionSteering * 180f * Time.deltaTime);
-
-        float distance_scaled = Vector3.Distance(_keyTarget.localPosition, transform.localPosition) / 30;
-        AddReward(-distance_scaled / 10);
+        AddReward(totalReward);
     }
 
     public override void Heuristic(in ActionBuffers actionsOut)

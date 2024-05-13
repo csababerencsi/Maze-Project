@@ -1,0 +1,29 @@
+{
+    "MazeKeySearch": {
+        "checkpoints": [
+            {
+                "steps": 57536,
+                "file_path": "results\\Maze01\\MazeKeySearch\\MazeKeySearch-57536.onnx",
+                "reward": null,
+                "creation_time": 1715605427.5054004,
+                "auxillary_file_paths": [
+                    "results\\Maze01\\MazeKeySearch\\MazeKeySearch-57536.pt"
+                ]
+            }
+        ],
+        "final_checkpoint": {
+            "steps": 57536,
+            "file_path": "results\\Maze01\\MazeKeySearch.onnx",
+            "reward": null,
+            "creation_time": 1715605427.5054004,
+            "auxillary_file_paths": [
+                "results\\Maze01\\MazeKeySearch\\MazeKeySearch-57536.pt"
+            ]
+        }
+    },
+    "metadata": {
+        "stats_format_version": "0.3.0",
+        "mlagents_version": "0.30.0",
+        "torch_version": "1.7.1+cu110"
+    }
+}
