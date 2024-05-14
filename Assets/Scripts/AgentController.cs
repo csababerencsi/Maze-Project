@@ -9,45 +9,34 @@ using UnityEngine;
 public class AgentController : Agent
 {
     [SerializeField] Transform _keyTransform;
-    [SerializeField] Transform _doorTransform;
-    [SerializeField] Transform _agentTransform;
-
     [SerializeField] GameObject _keyObject;
-    [SerializeField] float _moveSpeed = 10f;
+
+    [SerializeField] Transform _doorTransform;
+    [SerializeField] GameObject _doorObject;
+
+    [SerializeField] Transform _agentTransform;
     Vector3 _spawnPoint = new(-20f, 1f, 23f);
+
+
+    [SerializeField] float _moveSpeed = 10f;
     [SerializeField] Animator anim;
 
-    float _maxKeyReward = 2f;
-    float _maxDoorReward = 4f;
-    float _minReward = -1f;
-    float totalReward;
-
-    private void FixedUpdate()
-    {
-        float _agentToKeyDistance = Vector3.Distance(_agentTransform.position, _keyTransform.position);
-        float _agentToDoorDistance = Vector3.Distance(_agentTransform.position, _doorTransform.position);
-
-        float keyReward = Mathf.Clamp(_maxKeyReward - _agentToKeyDistance, _minReward, _maxKeyReward);
-        float doorReward = Mathf.Clamp(_maxDoorReward - _agentToDoorDistance, _minReward, _maxDoorReward);
-
-        totalReward = keyReward + doorReward;
-    }
-
+    const float _maxDistance = 70.71067f;
     public override void OnEpisodeBegin()
     {
+        anim.ResetTrigger("KeyTrigger");
+        _keyObject.SetActive(true);
         transform.localPosition = _spawnPoint;
         transform.rotation = Quaternion.Euler(0, 180f, 0f);
+        _keyObject.SetActive(true);
     }
 
     public override void CollectObservations(VectorSensor sensor)
     {
         sensor.AddObservation(transform.localPosition.x);
         sensor.AddObservation(transform.localPosition.z);
-        if (_keyTransform != null)
-        {
-            sensor.AddObservation(_keyTransform.localPosition.x);
-            sensor.AddObservation(_keyTransform.localPosition.z);
-        }
+        sensor.AddObservation(_keyTransform.localPosition.x);
+        sensor.AddObservation(_keyTransform.localPosition.z);
     }
 
     public override void OnActionReceived(ActionBuffers actions)
@@ -58,7 +47,17 @@ public class AgentController : Agent
         float _actionSteering = actionTaken[1];
         transform.Translate(_actionSpeed * Vector3.forward * _moveSpeed * Time.deltaTime);
         transform.Rotate(Vector3.up, _actionSteering * 180f * Time.deltaTime);
-        AddReward(totalReward);
+        
+        if (_keyObject.activeSelf)
+        {
+            float distance_scaled = Vector3.Distance(_keyTransform.localPosition, _agentTransform.localPosition) / _maxDistance;
+            AddReward(-distance_scaled / 10);
+        }
+        else
+        {
+            float distance_scaled = Vector3.Distance(_doorTransform.localPosition, _agentTransform.localPosition) / _maxDistance;
+            AddReward(-distance_scaled / 10);
+        }
     }
 
     public override void Heuristic(in ActionBuffers actionsOut)
@@ -95,14 +94,13 @@ public class AgentController : Agent
         {
             AddReward(2);
             anim.SetTrigger("KeyTrigger");
-            Destroy(_keyObject.gameObject);
+            _keyObject.SetActive(false);
 
         }
         if (collider.CompareTag("Door"))
         {
             AddReward(4);
-            EndEpisode();
-            anim.ResetTrigger("KeyTrigger");
+            EndEpisode(); 
         }
 
         if (collider.CompareTag("Wall"))
